@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matches — Fútbol Mundial</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #1a1a1a;
+      --surface2: #242424;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
+      --text: #f0f0f0;
+      --text2: #888;
+      --text3: #555;
+      --accent: #3b82f6;
+      --accent2: #1d4ed8;
+      --live: #ef4444;
+      --green: #22c55e;
+      --green-bg: rgba(34,197,94,0.12);
+      --red-bg: rgba(239,68,68,0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,13,13,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid var(--border);
+      padding: 1rem 1.25rem 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.875rem;
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .app-title span { color: var(--accent); }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--live);
+      font-weight: 500;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--live);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .date-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 0.875rem;
+    }
+    .date-scroll::-webkit-scrollbar { display: none; }
+
+    .date-btn {
+      flex-shrink: 0;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .date-btn:hover { border-color: var(--border2); color: var(--text); }
+    .date-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .main { padding: 1rem 1.25rem; }
+
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+    .summary-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .summary-value { font-size: 22px; font-weight: 600; }
+    .summary-value.live-val { color: var(--live); }
+
+    .filter-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-bottom: 1.25rem;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      flex-shrink: 0;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .filter-pill:hover { border-color: var(--border2); color: var(--text); }
+    .filter-pill.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+    .league-section { margin-bottom: 1.5rem; }
+
+    .league-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .league-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .league-line {
+      flex: 1;
+      height: 0.5px;
+      background: var(--border);
+    }
+
+    .match-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .match-card:hover { border-color: var(--border2); }
+    .match-card.expanded { border-color: var(--accent); }
+    .match-card.live-card { border-color: rgba(239,68,68,0.3); }
+
+    .match-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .match-time {
+      font-size: 12px;
+      color: var(--text2);
+      min-width: 40px;
+      font-variant-numeric: tabular-nums;
+    }
+    .match-time.live { color: var(--live); font-weight: 600; }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--live);
+      font-weight: 600;
+    }
+
+    .teams { flex: 1; }
+
+    .team-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5px 0;
+    }
+
+    .team-name {
+      font-size: 14px;
+      color: var(--text);
+    }
+    .team-name.bold { font-weight: 600; }
+
+    .score {
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 16px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .score.live { color: var(--live); }
+
+    .match-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-free { background: var(--green-bg); color: var(--green); }
+    .badge-pay { background: var(--red-bg); color: #f87171; }
+    .badge-unknown { background: var(--surface2); color: var(--text3); }
+
+    .stadium-text {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    .match-detail {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 0.5px solid var(--border);
+    }
+    .match-card.expanded .match-detail { display: block; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .detail-item { }
+    .detail-item-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .detail-item-value { font-size: 13px; color: var(--text); }
+
+    .loading {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text3);
+      font-size: 14px;
+    }
+
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
+
+    @media (max-width: 400px) {
+      .main { padding: 1rem; }
+      .header { padding: 1rem 1rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title">⚽ <span>Matches</span></div>
+    <div class="live-indicator" id="live-indicator" style="display:none">
+      <span class="live-dot"></span> EN DIRECTO
+    </div>
+  </div>
+  <div class="date-scroll" id="date-nav"></div>
+</div>
+
+<div class="main">
+  <div class="summary-bar">
+    <div class="summary-card">
+      <div class="summary-label">Partidos</div>
+      <div class="summary-value" id="total-matches">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">En directo</div>
+      <div class="summary-value live-val" id="live-count">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Ligas</div>
+      <div class="summary-value" id="league-count">—</div>
+    </div>
+  </div>
+
+  <div class="filter-scroll" id="filter-bar">
+    <span class="filter-pill active" data-league="all">Todos</span>
+  </div>
+
+  <div id="matches-container">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      Cargando partidos...
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'https://www.thesportsdb.com/api/v1/json/3';
+  let allEvents = [];
+  let selectedLeague = 'all';
+  let expandedId = null;
+
+  function formatDate(d) {
+    return d.toISOString().split('T')[0];
+  }
+
+  function buildDateNav() {
+    const nav = document.getElementById('date-nav');
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    for (let i = -2; i <= 5; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const btn = document.createElement('button');
+      btn.className = 'date-btn' + (i === 0 ? ' active' : '');
+      btn.dataset.date = formatDate(d);
+      if (i === 0) btn.textContent = 'Hoy';
+      else if (i === 1) btn.textContent = 'Mañana';
+      else if (i === -1) btn.textContent = 'Ayer';
+      else btn.textContent = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        fetchMatches(formatDate(d));
+      });
+      nav.appendChild(btn);
+    }
+  }
+
+  function getTVInfo(e) {
+    const ch = (e.strChannel || e.strTVStation || '').trim();
+    if (!ch) return { label: 'Desconocido', type: 'unknown' };
+    const free = ['BBC','ITV','TVE','La 1','La2','Cuatro','Antena 3','RTP','France 2','ARD','ZDF','Rai','M6','TF1','RTVE','NOS','SVT','NRK','DR','YLE'];
+    const pay = ['DAZN','ESPN','Sky','BT Sport','Canal+','beIN','Movistar','Prime Video','Apple TV','Paramount','Viaplay','TNT','HBO'];
+    const cl = ch.toLowerCase();
+    if (free.some(f => cl.includes(f.toLowerCase()))) return { label: ch, type: 'free' };
+    if (pay.some(p => cl.includes(p.toLowerCase()))) return { label: ch, type: 'pay' };
+    return { label: ch, type: 'unknown' };
+  }
+
+  function isLive(e) {
+    if (!e.strStatus) return false;
+    const s = e.strStatus.toLowerCase();
+    return ['in progress','live','1h','2h','ht','extra time','penalties'].includes(s);
+  }
+
+  async function fetchMatches(dateStr) {
+    const container = document.getElementById('matches-container');
+    container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando partidos...</div>';
+    try {
+      const res = await fetch(`${API}/eventsday.php?d=${dateStr}&s=Soccer`);
+      const data = await res.json();
+      allEvents = (data.events || []).filter(e => e.strSport === 'Soccer');
+      selectedLeague = 'all';
+      buildFilters();
+      renderMatches();
+    } catch(err) {
+      container.innerHTML = '<div class="empty">No se pudieron cargar los partidos.<br>Comprueba tu conexión.</div>';
+    }
+  }
+
+  function buildFilters() {
+    const bar = document.getElementById('filter-bar');
+    const leagues = [...new Set(allEvents.map(e => e.strLeague))].sort();
+    bar.innerHTML = '<span class="filter-pill active" data-league="all">Todos</span>';
+    leagues.forEach(l => {
+      const pill = document.createElement('span');
+      pill.className = 'filter-pill';
+      pill.dataset.league = l;
+      pill.textContent = l;
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        selectedLeague = l;
+        renderMatches();
+      });
+      bar.appendChild(pill);
+    });
+    bar.querySelector('[data-league="all"]').addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      bar.querySelector('[data-league="all"]').classList.add('active');
+      selectedLeague = 'all';
+      renderMatches();
+    });
+  }
+
+  function renderMatches() {
+    const container = document.getElementById('matches-container');
+    const filtered = selectedLeague === 'all' ? allEvents : allEvents.filter(e => e.strLeague === selectedLeague);
+
+    if (!filtered.length) {
+      container.innerHTML = '<div class="empty">No hay partidos para este filtro.</div>';
+      document.getElementById('total-matches').textContent = '0';
+      document.getElementById('live-count').textContent = '0';
+      document.getElementById('league-count').textContent = '0';
+      return;
+    }
+
+    const liveEvents = filtered.filter(isLive);
+    document.getElementById('total-matches').textContent = filtered.length;
+    document.getElementById('live-count').textContent = liveEvents.length;
+    const byLeague = {};
+    filtered.forEach(e => { if (!byLeague[e.strLeague]) byLeague[e.strLeague] = []; byLeague[e.strLeague].push(e); });
+    document.getElementById('league-count').textContent = Object.keys(byLeague).length;
+    document.getElementById('live-indicator').style.display = liveEvents.length > 0 ? 'flex' : 'none';
+
+    let html = '';
+    Object.entries(byLeague).forEach(([league, events]) => {
+      html += `<div class="league-section">
+        <div class="league-header">
+          <span class="league-name">${league}</span>
+          <span class="league-line"></span>
+        </div>`;
+      events.forEach(e => {
+        const tv = getTVInfo(e);
+        const live = isLive(e);
+        const hasScore = e.intHomeScore !== null && e.intHomeScore !== '' && e.intAwayScore !== null && e.intAwayScore !== '';
+        const timeStr = live ? '' : (e.strTime ? e.strTime.slice(0,5) : '--:--');
+        const homeScore = hasScore ? e.intHomeScore : '-';
+        const awayScore = hasScore ? e.intAwayScore : '-';
+        const stadium = [e.strVenue, e.strCity].filter(Boolean).join(', ');
+        const tvBadgeClass = tv.type === 'free' ? 'badge-free' : tv.type === 'pay' ? 'badge-pay' : 'badge-unknown';
+        const tvIcon = tv.type === 'free' ? '✓' : tv.type === 'pay' ? '$' : '?';
+        const expanded = expandedId === e.idEvent;
+
+        html += `<div class="match-card ${live ? 'live-card' : ''} ${expanded ? 'expanded' : ''}" data-id="${e.idEvent}">
+          <div class="match-row">
+            <div class="match-time ${live ? 'live' : ''}">
+              ${live ? '<div class="live-badge"><span class="live-dot" style="width:5px;height:5px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1.2s infinite"></span>LIVE</div>' : timeStr}
+            </div>
+            <div class="teams">
+              <div class="team-row">
+                <span class="team-name ${hasScore && parseInt(homeScore) > parseInt(awayScore) ? 'bold' : ''}">${e.strHomeTeam}</span>
+                <span class="score ${live ? 'live' : ''}">${homeScore}</span>
+              </div>
+              <div class="team-row">
+                <span class="team-name ${hasScore && parseInt(awayScore) > parseInt(homeScore) ? 'bold' : ''}">${e.strAwayTeam}</span>
+                <span class="score ${live ? 'live' : ''}">${awayScore}</span>
+              </div>
+            </div>
+          </div>
+          <div class="match-footer">
+            <span class="badge ${tvBadgeClass}">${tvIcon} ${tv.label}</span>
+            ${stadium ? `<span class="stadium-text">📍 ${stadium}</span>` : ''}
+          </div>
+          <div class="match-detail">
+            <div class="detail-grid">
+              <div class="detail-item"><div class="detail-item-label">Estadio</div><div class="detail-item-value">${e.strVenue || '—'}</div></div>
+              <div class="detail-item"><div class="detail-item-label">Ciudad</div><div class="detail-item-value">${e.strCity || '—'}</div></div>
+              <div class="detail-item"><div class="detail-item-label">Canal</div><div class="detail-item-value">${tv.label}</div></div>
+              <div class="detail-item"><div class="detail-item-label">Tipo</div><div class="detail-item-value">${tv.type === 'free' ? 'Gratuito' : tv.type === 'pay' ? 'De pago' : '—'}</div></div>
+              <div class="detail-item"><div class="detail-item-label">Jornada</div><div class="detail-item-value">${e.intRound ? 'Jornada ' + e.intRound : '—'}</div></div>
+              <div class="detail-item"><div class="detail-item-label">País</div><div class="detail-item-value">${e.strCountry || '—'}</div></div>
+            </div>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('.match-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        if (expandedId === id) {
+          expandedId = null;
+          card.classList.remove('expanded');
+        } else {
+          container.querySelectorAll('.match-card').forEach(c => c.classList.remove('expanded'));
+          expandedId = id;
+          card.classList.add('expanded');
+        }
+      });
+    });
+  }
+
+  buildDateNav();
+  fetchMatches(formatDate(new Date()));
+</script>
+</body>
+</html>
