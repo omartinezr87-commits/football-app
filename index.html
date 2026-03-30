@@ -11,528 +11,469 @@
   <meta name="apple-mobile-web-app-title" content="Matches" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0d0d0d;
-      --surface: #1a1a1a;
-      --surface2: #242424;
-      --border: rgba(255,255,255,0.08);
-      --border2: rgba(255,255,255,0.15);
-      --text: #f0f0f0;
-      --text2: #888;
-      --text3: #555;
-      --accent: #3b82f6;
-      --accent2: #1d4ed8;
-      --live: #ef4444;
-      --green: #22c55e;
-      --green-bg: rgba(34,197,94,0.12);
-      --red-bg: rgba(239,68,68,0.12);
-      --radius: 12px;
-      --radius-sm: 8px;
+      --bg: #0d0d0d; --surface: #1a1a1a; --surface2: #242424;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15);
+      --text: #f0f0f0; --text2: #888; --text3: #555;
+      --accent: #3b82f6; --live: #ef4444; --green: #22c55e;
+      --green-bg: rgba(34,197,94,0.12); --red-bg: rgba(239,68,68,0.12);
+      --radius: 12px; --radius-sm: 8px;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 2rem;
-    }
-
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(13,13,13,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 0.5px solid var(--border);
-      padding: 1rem 1.25rem 0;
-    }
-
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.875rem;
-    }
-
-    .app-title {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13,13,13,0.96); backdrop-filter: blur(16px); border-top: 0.5px solid var(--border); display: flex; z-index: 200; }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0 12px; cursor: pointer; border: none; background: transparent; color: var(--text3); font-size: 10px; gap: 4px; transition: color 0.15s; }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 22px; height: 22px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .header { position: sticky; top: 0; z-index: 100; background: rgba(13,13,13,0.92); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); padding: 1rem 1.25rem 0; }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; }
+    .app-title { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
     .app-title span { color: var(--accent); }
-
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--live);
-      font-weight: 500;
-    }
-
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--live);
-      animation: pulse 1.2s infinite;
-    }
-
+    .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--live); font-weight: 500; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--live); animation: pulse 1.2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-    .date-scroll {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 0.875rem;
-    }
+    .date-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.875rem; }
     .date-scroll::-webkit-scrollbar { display: none; }
-
-    .date-btn {
-      flex-shrink: 0;
-      background: transparent;
-      border: 0.5px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 12px;
-      color: var(--text2);
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
+    .date-btn { flex-shrink: 0; background: transparent; border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
     .date-btn:hover { border-color: var(--border2); color: var(--text); }
     .date-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-
     .main { padding: 1rem 1.25rem; }
-
-    .summary-bar {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 1.25rem;
-    }
-
-    .summary-card {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-    }
+    .page-title { font-size: 18px; font-weight: 600; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
+    .summary-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+    .summary-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
     .summary-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
     .summary-value { font-size: 22px; font-weight: 600; }
     .summary-value.live-val { color: var(--live); }
-
-    .filter-scroll {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      margin-bottom: 1.25rem;
-    }
+    .filter-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 1.25rem; }
     .filter-scroll::-webkit-scrollbar { display: none; }
-
-    .filter-pill {
-      flex-shrink: 0;
-      background: transparent;
-      border: 0.5px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 12px;
-      color: var(--text2);
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
+    .filter-pill { flex-shrink: 0; background: transparent; border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
     .filter-pill:hover { border-color: var(--border2); color: var(--text); }
     .filter-pill.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
-
     .league-section { margin-bottom: 1.5rem; }
-
-    .league-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .league-name {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .league-line {
-      flex: 1;
-      height: 0.5px;
-      background: var(--border);
-    }
-
-    .match-card {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
+    .league-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .league-name { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+    .league-fav-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 0 2px; opacity: 0.4; transition: opacity 0.15s; }
+    .league-fav-btn:hover, .league-fav-btn.active { opacity: 1; }
+    .league-line { flex: 1; height: 0.5px; background: var(--border); }
+    .match-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s; }
     .match-card:hover { border-color: var(--border2); }
     .match-card.expanded { border-color: var(--accent); }
     .match-card.live-card { border-color: rgba(239,68,68,0.3); }
-
-    .match-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .match-time {
-      font-size: 12px;
-      color: var(--text2);
-      min-width: 40px;
-      font-variant-numeric: tabular-nums;
-    }
+    .match-row { display: flex; align-items: center; gap: 12px; }
+    .match-time { font-size: 12px; color: var(--text2); min-width: 44px; font-variant-numeric: tabular-nums; }
     .match-time.live { color: var(--live); font-weight: 600; }
-
-    .live-badge {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--live);
-      font-weight: 600;
-    }
-
     .teams { flex: 1; }
-
-    .team-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 2.5px 0;
-    }
-
-    .team-name {
-      font-size: 14px;
-      color: var(--text);
-    }
+    .team-row { display: flex; align-items: center; justify-content: space-between; padding: 2.5px 0; }
+    .team-name { font-size: 14px; color: var(--text); }
     .team-name.bold { font-weight: 600; }
-
-    .score {
-      font-size: 14px;
-      font-weight: 600;
-      min-width: 16px;
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-    }
+    .score { font-size: 14px; font-weight: 600; min-width: 16px; text-align: center; font-variant-numeric: tabular-nums; }
     .score.live { color: var(--live); }
-
-    .match-footer {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 5px;
-      font-size: 11px;
-      font-weight: 500;
-    }
+    .match-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 500; }
     .badge-free { background: var(--green-bg); color: var(--green); }
     .badge-pay { background: var(--red-bg); color: #f87171; }
     .badge-unknown { background: var(--surface2); color: var(--text3); }
-
-    .stadium-text {
-      font-size: 11px;
-      color: var(--text3);
-    }
-
-    .match-detail {
-      display: none;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 0.5px solid var(--border);
-    }
+    .stadium-text { font-size: 11px; color: var(--text3); }
+    .match-detail { display: none; margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--border); }
     .match-card.expanded .match-detail { display: block; }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .detail-item { }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .detail-item-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
     .detail-item-value { font-size: 13px; color: var(--text); }
-
-    .loading {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--text3);
-      font-size: 14px;
-    }
-
-    .loading-spinner {
-      width: 24px;
-      height: 24px;
-      border: 2px solid var(--border2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 0 auto 1rem;
-    }
+    .search-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1.25rem; }
+    .search-bar input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; }
+    .search-bar input::placeholder { color: var(--text3); }
+    .search-bar svg { width: 18px; height: 18px; color: var(--text3); flex-shrink: 0; }
+    .search-result-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s; }
+    .search-result-item:hover { border-color: var(--border2); }
+    .search-result-name { font-size: 14px; color: var(--text); }
+    .search-result-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .standings-select { width: 100%; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text); font-size: 14px; margin-bottom: 1.25rem; outline: none; cursor: pointer; }
+    .standings-table { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .standings-row { display: grid; grid-template-columns: 26px 1fr 28px 28px 28px 28px 34px; align-items: center; padding: 10px 14px; border-bottom: 0.5px solid var(--border); font-size: 13px; gap: 2px; }
+    .standings-row:last-child { border-bottom: none; }
+    .standings-row.header { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 14px; background: var(--surface2); }
+    .standings-pos { color: var(--text2); }
+    .standings-team { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .standings-num { text-align: center; color: var(--text2); }
+    .standings-pts { text-align: center; font-weight: 600; }
+    .pos-promote { border-left: 3px solid #22c55e; }
+    .pos-relegate { border-left: 3px solid var(--live); }
+    .pos-europe { border-left: 3px solid var(--accent); }
+    .fav-league-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .fav-remove-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 20px; padding: 0 4px; transition: color 0.15s; line-height: 1; }
+    .fav-remove-btn:hover { color: var(--live); }
+    .loading { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+    .loading-spinner { width: 24px; height: 24px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
-
-    @media (max-width: 400px) {
-      .main { padding: 1rem; }
-      .header { padding: 1rem 1rem 0; }
-    }
+    .empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; line-height: 1.6; }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-top">
-    <div class="app-title">⚽ <span>Matches</span></div>
-    <div class="live-indicator" id="live-indicator" style="display:none">
-      <span class="live-dot"></span> EN DIRECTO
+<div class="page active" id="page-matches">
+  <div class="header">
+    <div class="header-top">
+      <div class="app-title">⚽ <span>Matches</span></div>
+      <div class="live-indicator" id="live-indicator" style="display:none"><span class="live-dot"></span> EN DIRECTO</div>
     </div>
+    <div class="date-scroll" id="date-nav"></div>
   </div>
-  <div class="date-scroll" id="date-nav"></div>
-</div>
-
-<div class="main">
-  <div class="summary-bar">
-    <div class="summary-card">
-      <div class="summary-label">Partidos</div>
-      <div class="summary-value" id="total-matches">—</div>
+  <div class="main">
+    <div class="summary-bar">
+      <div class="summary-card"><div class="summary-label">Partidos</div><div class="summary-value" id="total-matches">—</div></div>
+      <div class="summary-card"><div class="summary-label">En directo</div><div class="summary-value live-val" id="live-count">—</div></div>
+      <div class="summary-card"><div class="summary-label">Ligas</div><div class="summary-value" id="league-count">—</div></div>
     </div>
-    <div class="summary-card">
-      <div class="summary-label">En directo</div>
-      <div class="summary-value live-val" id="live-count">—</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">Ligas</div>
-      <div class="summary-value" id="league-count">—</div>
-    </div>
-  </div>
-
-  <div class="filter-scroll" id="filter-bar">
-    <span class="filter-pill active" data-league="all">Todos</span>
-  </div>
-
-  <div id="matches-container">
-    <div class="loading">
-      <div class="loading-spinner"></div>
-      Cargando partidos...
-    </div>
+    <div class="filter-scroll" id="filter-bar"><span class="filter-pill active" data-league="all">Todos</span></div>
+    <div id="matches-container"><div class="loading"><div class="loading-spinner"></div>Cargando partidos...</div></div>
   </div>
 </div>
+
+<div class="page" id="page-search">
+  <div class="main" style="padding-top:1.5rem">
+    <div class="page-title">Buscar</div>
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search-input" placeholder="Nombre del equipo..." autocomplete="off" />
+    </div>
+    <div id="search-results"><div class="empty">Escribe al menos 2 letras para buscar.</div></div>
+  </div>
+</div>
+
+<div class="page" id="page-standings">
+  <div class="main" style="padding-top:1.5rem">
+    <div class="page-title">Clasificación</div>
+    <select class="standings-select" id="standings-select">
+      <option value="4335">Premier League</option>
+      <option value="4332">La Liga</option>
+      <option value="4331">Bundesliga</option>
+      <option value="4334">Serie A</option>
+      <option value="4333">Ligue 1</option>
+      <option value="4480">Champions League</option>
+      <option value="4346">MLS</option>
+      <option value="4350">Brasileirao</option>
+    </select>
+    <div id="standings-container"><div class="loading"><div class="loading-spinner"></div>Cargando...</div></div>
+  </div>
+</div>
+
+<div class="page" id="page-favorites">
+  <div class="main" style="padding-top:1.5rem">
+    <div class="page-title">Favoritos</div>
+    <div id="favorites-container"></div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="matches">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Partidos
+  </button>
+  <button class="nav-btn" data-page="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Buscar
+  </button>
+  <button class="nav-btn" data-page="standings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    Tabla
+  </button>
+  <button class="nav-btn" data-page="favorites">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Favoritos
+  </button>
+</nav>
 
 <script>
-  const API = 'https://www.thesportsdb.com/api/v1/json/3';
-  let allEvents = [];
-  let selectedLeague = 'all';
-  let expandedId = null;
+const API = 'https://www.thesportsdb.com/api/v1/json/3';
+let allEvents = [], selectedLeague = 'all', expandedId = null;
+let favorites = JSON.parse(localStorage.getItem('fav_leagues') || '[]');
 
-  function formatDate(d) {
-    return d.toISOString().split('T')[0];
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const page = btn.dataset.page;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + page).classList.add('active');
+    if (page === 'standings') loadStandings();
+    if (page === 'favorites') renderFavorites();
+  });
+});
+
+function formatDate(d) { return d.toISOString().split('T')[0]; }
+
+function buildDateNav() {
+  const nav = document.getElementById('date-nav');
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = -2; i <= 5; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const btn = document.createElement('button');
+    btn.className = 'date-btn' + (i === 0 ? ' active' : '');
+    if (i === 0) btn.textContent = 'Hoy';
+    else if (i === 1) btn.textContent = 'Mañana';
+    else if (i === -1) btn.textContent = 'Ayer';
+    else btn.textContent = d.toLocaleDateString('es-ES', {weekday:'short', day:'numeric', month:'short'});
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fetchMatches(formatDate(d));
+    });
+    nav.appendChild(btn);
+  }
+}
+
+function getTVInfo(e) {
+  const ch = (e.strChannel || e.strTVStation || '').trim();
+  if (!ch) return { label: 'Desconocido', type: 'unknown' };
+  const free = ['BBC','ITV','TVE','La 1','La2','Cuatro','Antena 3','RTP','France 2','ARD','ZDF','Rai','M6','TF1','RTVE','NOS','SVT','NRK'];
+  const pay = ['DAZN','ESPN','Sky','BT Sport','Canal+','beIN','Movistar','Prime Video','Apple TV','Paramount','Viaplay','TNT','HBO'];
+  const cl = ch.toLowerCase();
+  if (free.some(f => cl.includes(f.toLowerCase()))) return { label: ch, type: 'free' };
+  if (pay.some(p => cl.includes(p.toLowerCase()))) return { label: ch, type: 'pay' };
+  return { label: ch, type: 'unknown' };
+}
+
+function isLive(e) {
+  if (!e.strStatus) return false;
+  return ['in progress','live','1h','2h','ht','extra time','penalties'].includes(e.strStatus.toLowerCase());
+}
+
+async function fetchMatches(dateStr) {
+  const container = document.getElementById('matches-container');
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando partidos...</div>';
+  try {
+    const res = await fetch(`${API}/eventsday.php?d=${dateStr}&s=Soccer`);
+    const data = await res.json();
+    allEvents = (data.events || []).filter(e => e.strSport === 'Soccer');
+    selectedLeague = 'all';
+    buildFilters();
+    renderMatches();
+  } catch(err) {
+    container.innerHTML = '<div class="empty">No se pudieron cargar los partidos.</div>';
+  }
+}
+
+function buildFilters() {
+  const bar = document.getElementById('filter-bar');
+  const favLeagues = [...new Set(allEvents.filter(e => favorites.includes(e.strLeague)).map(e => e.strLeague))];
+  const allLeagues = [...new Set(allEvents.map(e => e.strLeague))].sort();
+  bar.innerHTML = '<span class="filter-pill active" data-league="all">Todos</span>';
+  if (favLeagues.length) bar.innerHTML += '<span class="filter-pill" data-league="__favs__">⭐ Favoritos</span>';
+  allLeagues.forEach(l => {
+    const pill = document.createElement('span');
+    pill.className = 'filter-pill';
+    pill.dataset.league = l;
+    pill.textContent = (favorites.includes(l) ? '⭐ ' : '') + l;
+    bar.appendChild(pill);
+  });
+  bar.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      bar.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      selectedLeague = pill.dataset.league;
+      renderMatches();
+    });
+  });
+}
+
+function renderMatches() {
+  const container = document.getElementById('matches-container');
+  let filtered;
+  if (selectedLeague === 'all') filtered = allEvents;
+  else if (selectedLeague === '__favs__') filtered = allEvents.filter(e => favorites.includes(e.strLeague));
+  else filtered = allEvents.filter(e => e.strLeague === selectedLeague);
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty">No hay partidos para este filtro.</div>';
+    ['total-matches','live-count','league-count'].forEach(id => document.getElementById(id).textContent = '0');
+    return;
   }
 
-  function buildDateNav() {
-    const nav = document.getElementById('date-nav');
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    for (let i = -2; i <= 5; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const btn = document.createElement('button');
-      btn.className = 'date-btn' + (i === 0 ? ' active' : '');
-      btn.dataset.date = formatDate(d);
-      if (i === 0) btn.textContent = 'Hoy';
-      else if (i === 1) btn.textContent = 'Mañana';
-      else if (i === -1) btn.textContent = 'Ayer';
-      else btn.textContent = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        fetchMatches(formatDate(d));
-      });
-      nav.appendChild(btn);
-    }
-  }
+  const liveEvents = filtered.filter(isLive);
+  document.getElementById('total-matches').textContent = filtered.length;
+  document.getElementById('live-count').textContent = liveEvents.length;
+  const byLeague = {};
+  filtered.forEach(e => { if (!byLeague[e.strLeague]) byLeague[e.strLeague] = []; byLeague[e.strLeague].push(e); });
+  document.getElementById('league-count').textContent = Object.keys(byLeague).length;
+  document.getElementById('live-indicator').style.display = liveEvents.length > 0 ? 'flex' : 'none';
 
-  function getTVInfo(e) {
-    const ch = (e.strChannel || e.strTVStation || '').trim();
-    if (!ch) return { label: 'Desconocido', type: 'unknown' };
-    const free = ['BBC','ITV','TVE','La 1','La2','Cuatro','Antena 3','RTP','France 2','ARD','ZDF','Rai','M6','TF1','RTVE','NOS','SVT','NRK','DR','YLE'];
-    const pay = ['DAZN','ESPN','Sky','BT Sport','Canal+','beIN','Movistar','Prime Video','Apple TV','Paramount','Viaplay','TNT','HBO'];
-    const cl = ch.toLowerCase();
-    if (free.some(f => cl.includes(f.toLowerCase()))) return { label: ch, type: 'free' };
-    if (pay.some(p => cl.includes(p.toLowerCase()))) return { label: ch, type: 'pay' };
-    return { label: ch, type: 'unknown' };
-  }
+  let html = '';
+  Object.entries(byLeague).forEach(([league, events]) => {
+    const isFav = favorites.includes(league);
+    html += `<div class="league-section"><div class="league-header">
+      <span class="league-name">${league}</span>
+      <button class="league-fav-btn ${isFav ? 'active' : ''}" data-league="${league}">${isFav ? '⭐' : '☆'}</button>
+      <span class="league-line"></span></div>`;
+    events.forEach(e => {
+      const tv = getTVInfo(e);
+      const live = isLive(e);
+      const hasScore = e.intHomeScore !== null && e.intHomeScore !== '' && e.intAwayScore !== null && e.intAwayScore !== '';
+      const hs = hasScore ? e.intHomeScore : '-', as2 = hasScore ? e.intAwayScore : '-';
+      const stadium = [e.strVenue, e.strCity].filter(Boolean).join(', ');
+      const tvCls = tv.type === 'free' ? 'badge-free' : tv.type === 'pay' ? 'badge-pay' : 'badge-unknown';
+      const tvIcon = tv.type === 'free' ? '✓' : tv.type === 'pay' ? '$' : '?';
+      html += `<div class="match-card ${live ? 'live-card' : ''} ${expandedId === e.idEvent ? 'expanded' : ''}" data-id="${e.idEvent}">
+        <div class="match-row">
+          <div class="match-time ${live ? 'live' : ''}">${live ? '<span style="font-size:11px;color:#ef4444;font-weight:600">● LIVE</span>' : (e.strTime ? e.strTime.slice(0,5) : '--:--')}</div>
+          <div class="teams">
+            <div class="team-row"><span class="team-name ${hasScore && parseInt(hs)>parseInt(as2)?'bold':''}">${e.strHomeTeam}</span><span class="score ${live?'live':''}">${hs}</span></div>
+            <div class="team-row"><span class="team-name ${hasScore && parseInt(as2)>parseInt(hs)?'bold':''}">${e.strAwayTeam}</span><span class="score ${live?'live':''}">${as2}</span></div>
+          </div>
+        </div>
+        <div class="match-footer">
+          <span class="badge ${tvCls}">${tvIcon} ${tv.label}</span>
+          ${stadium ? `<span class="stadium-text">📍 ${stadium}</span>` : ''}
+        </div>
+        <div class="match-detail"><div class="detail-grid">
+          <div class="detail-item"><div class="detail-item-label">Estadio</div><div class="detail-item-value">${e.strVenue||'—'}</div></div>
+          <div class="detail-item"><div class="detail-item-label">Ciudad</div><div class="detail-item-value">${e.strCity||'—'}</div></div>
+          <div class="detail-item"><div class="detail-item-label">Canal</div><div class="detail-item-value">${tv.label}</div></div>
+          <div class="detail-item"><div class="detail-item-label">Tipo</div><div class="detail-item-value">${tv.type==='free'?'Gratuito':tv.type==='pay'?'De pago':'—'}</div></div>
+          <div class="detail-item"><div class="detail-item-label">Jornada</div><div class="detail-item-value">${e.intRound?'Jornada '+e.intRound:'—'}</div></div>
+          <div class="detail-item"><div class="detail-item-label">País</div><div class="detail-item-value">${e.strCountry||'—'}</div></div>
+        </div></div>
+      </div>`;
+    });
+    html += '</div>';
+  });
 
-  function isLive(e) {
-    if (!e.strStatus) return false;
-    const s = e.strStatus.toLowerCase();
-    return ['in progress','live','1h','2h','ht','extra time','penalties'].includes(s);
-  }
+  container.innerHTML = html;
 
-  async function fetchMatches(dateStr) {
-    const container = document.getElementById('matches-container');
-    container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando partidos...</div>';
-    try {
-      const res = await fetch(`${API}/eventsday.php?d=${dateStr}&s=Soccer`);
-      const data = await res.json();
-      allEvents = (data.events || []).filter(e => e.strSport === 'Soccer');
-      selectedLeague = 'all';
+  container.querySelectorAll('.match-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      container.querySelectorAll('.match-card').forEach(c => c.classList.remove('expanded'));
+      if (expandedId === id) { expandedId = null; }
+      else { expandedId = id; card.classList.add('expanded'); }
+    });
+  });
+
+  container.querySelectorAll('.league-fav-btn').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const l = btn.dataset.league;
+      if (favorites.includes(l)) { favorites = favorites.filter(f => f !== l); btn.textContent = '☆'; btn.classList.remove('active'); }
+      else { favorites.push(l); btn.textContent = '⭐'; btn.classList.add('active'); }
+      localStorage.setItem('fav_leagues', JSON.stringify(favorites));
       buildFilters();
-      renderMatches();
-    } catch(err) {
-      container.innerHTML = '<div class="empty">No se pudieron cargar los partidos.<br>Comprueba tu conexión.</div>';
-    }
-  }
-
-  function buildFilters() {
-    const bar = document.getElementById('filter-bar');
-    const leagues = [...new Set(allEvents.map(e => e.strLeague))].sort();
-    bar.innerHTML = '<span class="filter-pill active" data-league="all">Todos</span>';
-    leagues.forEach(l => {
-      const pill = document.createElement('span');
-      pill.className = 'filter-pill';
-      pill.dataset.league = l;
-      pill.textContent = l;
-      pill.addEventListener('click', () => {
-        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        selectedLeague = l;
-        renderMatches();
-      });
-      bar.appendChild(pill);
     });
-    bar.querySelector('[data-league="all"]').addEventListener('click', () => {
-      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      bar.querySelector('[data-league="all"]').classList.add('active');
-      selectedLeague = 'all';
-      renderMatches();
+  });
+}
+
+// SEARCH
+let searchTimeout;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimeout);
+  const q = e.target.value.trim();
+  if (q.length < 2) { document.getElementById('search-results').innerHTML = '<div class="empty">Escribe al menos 2 letras para buscar.</div>'; return; }
+  searchTimeout = setTimeout(() => searchTeams(q), 400);
+});
+
+async function searchTeams(q) {
+  const container = document.getElementById('search-results');
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Buscando...</div>';
+  try {
+    const res = await fetch(`${API}/searchteams.php?t=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    const teams = (data.teams || []).filter(t => t.strSport === 'Soccer').slice(0, 10);
+    if (!teams.length) { container.innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
+    container.innerHTML = teams.map(t => `
+      <div class="search-result-item" data-teamid="${t.idTeam}" data-teamname="${t.strTeam}">
+        <div><div class="search-result-name">${t.strTeam}</div><div class="search-result-sub">${[t.strLeague, t.strCountry].filter(Boolean).join(' · ')}</div></div>
+        <span style="color:var(--text3);font-size:18px">›</span>
+      </div>`).join('');
+    container.querySelectorAll('.search-result-item').forEach(item => {
+      item.addEventListener('click', () => searchTeamEvents(item.dataset.teamid, item.dataset.teamname));
     });
-  }
+  } catch { container.innerHTML = '<div class="empty">Error al buscar.</div>'; }
+}
 
-  function renderMatches() {
-    const container = document.getElementById('matches-container');
-    const filtered = selectedLeague === 'all' ? allEvents : allEvents.filter(e => e.strLeague === selectedLeague);
-
-    if (!filtered.length) {
-      container.innerHTML = '<div class="empty">No hay partidos para este filtro.</div>';
-      document.getElementById('total-matches').textContent = '0';
-      document.getElementById('live-count').textContent = '0';
-      document.getElementById('league-count').textContent = '0';
-      return;
-    }
-
-    const liveEvents = filtered.filter(isLive);
-    document.getElementById('total-matches').textContent = filtered.length;
-    document.getElementById('live-count').textContent = liveEvents.length;
-    const byLeague = {};
-    filtered.forEach(e => { if (!byLeague[e.strLeague]) byLeague[e.strLeague] = []; byLeague[e.strLeague].push(e); });
-    document.getElementById('league-count').textContent = Object.keys(byLeague).length;
-    document.getElementById('live-indicator').style.display = liveEvents.length > 0 ? 'flex' : 'none';
-
-    let html = '';
-    Object.entries(byLeague).forEach(([league, events]) => {
-      html += `<div class="league-section">
-        <div class="league-header">
-          <span class="league-name">${league}</span>
-          <span class="league-line"></span>
-        </div>`;
+async function searchTeamEvents(teamId, teamName) {
+  const container = document.getElementById('search-results');
+  container.innerHTML = `<button id="back-btn" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;margin-bottom:1rem;padding:0">← Volver</button><div class="loading"><div class="loading-spinner"></div>Cargando partidos...</div>`;
+  document.getElementById('back-btn').addEventListener('click', () => {
+    const q = document.getElementById('search-input').value.trim();
+    if (q.length >= 2) searchTeams(q);
+    else container.innerHTML = '<div class="empty">Escribe al menos 2 letras para buscar.</div>';
+  });
+  try {
+    const res = await fetch(`${API}/eventsnext.php?id=${teamId}`);
+    const data = await res.json();
+    const events = (data.events || []).slice(0, 8);
+    let html = `<button id="back-btn2" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;margin-bottom:1rem;padding:0">← Volver</button>`;
+    html += `<div style="font-size:13px;color:var(--text2);margin-bottom:12px">Próximos partidos · <strong style="color:var(--text)">${teamName}</strong></div>`;
+    if (!events.length) { container.innerHTML = html + '<div class="empty">Sin próximos partidos.</div>'; }
+    else {
       events.forEach(e => {
-        const tv = getTVInfo(e);
-        const live = isLive(e);
-        const hasScore = e.intHomeScore !== null && e.intHomeScore !== '' && e.intAwayScore !== null && e.intAwayScore !== '';
-        const timeStr = live ? '' : (e.strTime ? e.strTime.slice(0,5) : '--:--');
-        const homeScore = hasScore ? e.intHomeScore : '-';
-        const awayScore = hasScore ? e.intAwayScore : '-';
-        const stadium = [e.strVenue, e.strCity].filter(Boolean).join(', ');
-        const tvBadgeClass = tv.type === 'free' ? 'badge-free' : tv.type === 'pay' ? 'badge-pay' : 'badge-unknown';
-        const tvIcon = tv.type === 'free' ? '✓' : tv.type === 'pay' ? '$' : '?';
-        const expanded = expandedId === e.idEvent;
-
-        html += `<div class="match-card ${live ? 'live-card' : ''} ${expanded ? 'expanded' : ''}" data-id="${e.idEvent}">
-          <div class="match-row">
-            <div class="match-time ${live ? 'live' : ''}">
-              ${live ? '<div class="live-badge"><span class="live-dot" style="width:5px;height:5px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1.2s infinite"></span>LIVE</div>' : timeStr}
-            </div>
-            <div class="teams">
-              <div class="team-row">
-                <span class="team-name ${hasScore && parseInt(homeScore) > parseInt(awayScore) ? 'bold' : ''}">${e.strHomeTeam}</span>
-                <span class="score ${live ? 'live' : ''}">${homeScore}</span>
-              </div>
-              <div class="team-row">
-                <span class="team-name ${hasScore && parseInt(awayScore) > parseInt(homeScore) ? 'bold' : ''}">${e.strAwayTeam}</span>
-                <span class="score ${live ? 'live' : ''}">${awayScore}</span>
-              </div>
-            </div>
-          </div>
-          <div class="match-footer">
-            <span class="badge ${tvBadgeClass}">${tvIcon} ${tv.label}</span>
-            ${stadium ? `<span class="stadium-text">📍 ${stadium}</span>` : ''}
-          </div>
-          <div class="match-detail">
-            <div class="detail-grid">
-              <div class="detail-item"><div class="detail-item-label">Estadio</div><div class="detail-item-value">${e.strVenue || '—'}</div></div>
-              <div class="detail-item"><div class="detail-item-label">Ciudad</div><div class="detail-item-value">${e.strCity || '—'}</div></div>
-              <div class="detail-item"><div class="detail-item-label">Canal</div><div class="detail-item-value">${tv.label}</div></div>
-              <div class="detail-item"><div class="detail-item-label">Tipo</div><div class="detail-item-value">${tv.type === 'free' ? 'Gratuito' : tv.type === 'pay' ? 'De pago' : '—'}</div></div>
-              <div class="detail-item"><div class="detail-item-label">Jornada</div><div class="detail-item-value">${e.intRound ? 'Jornada ' + e.intRound : '—'}</div></div>
-              <div class="detail-item"><div class="detail-item-label">País</div><div class="detail-item-value">${e.strCountry || '—'}</div></div>
-            </div>
-          </div>
+        const date = e.dateEvent ? new Date(e.dateEvent).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'}) : '—';
+        html += `<div class="search-result-item" style="flex-direction:column;align-items:flex-start;gap:5px;cursor:default">
+          <div style="display:flex;justify-content:space-between;width:100%"><span style="font-size:12px;color:var(--text2)">${date} ${e.strTime?e.strTime.slice(0,5):''}</span><span style="font-size:11px;color:var(--text3)">${e.strLeague||''}</span></div>
+          <div style="font-size:14px">${e.strHomeTeam} <span style="color:var(--text3)">vs</span> ${e.strAwayTeam}</div>
+          ${e.strVenue?`<div style="font-size:11px;color:var(--text3)">📍 ${e.strVenue}</div>`:''}
         </div>`;
       });
-      html += '</div>';
+      container.innerHTML = html;
+    }
+    container.querySelector('#back-btn2').addEventListener('click', () => {
+      const q = document.getElementById('search-input').value.trim();
+      if (q.length >= 2) searchTeams(q);
+      else container.innerHTML = '<div class="empty">Escribe al menos 2 letras para buscar.</div>';
     });
+  } catch { container.innerHTML = '<div class="empty">Error al cargar.</div>'; }
+}
 
+// STANDINGS
+async function loadStandings() {
+  const leagueId = document.getElementById('standings-select').value;
+  const container = document.getElementById('standings-container');
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando...</div>';
+  try {
+    const res = await fetch(`${API}/lookuptable.php?l=${leagueId}&s=2024-2025`);
+    const data = await res.json();
+    const table = data.table || [];
+    if (!table.length) { container.innerHTML = '<div class="empty">No hay datos para esta liga.</div>'; return; }
+    let html = '<div class="standings-table"><div class="standings-row header"><span>#</span><span>Equipo</span><span>PJ</span><span>G</span><span>P</span><span>E</span><span>Pts</span></div>';
+    table.forEach((t, i) => {
+      const pos = parseInt(t.intRank) || i+1;
+      const cls = pos <= 4 ? 'pos-promote' : pos <= 6 ? 'pos-europe' : pos >= table.length - 2 ? 'pos-relegate' : '';
+      html += `<div class="standings-row ${cls}"><span class="standings-pos">${pos}</span><span class="standings-team">${t.strTeam}</span><span class="standings-num">${t.intPlayed||0}</span><span class="standings-num">${t.intWin||0}</span><span class="standings-num">${t.intLoss||0}</span><span class="standings-num">${t.intDraw||0}</span><span class="standings-pts">${t.intPoints||0}</span></div>`;
+    });
+    html += '</div><div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--text3);padding:0 2px">';
+    html += '<span><span style="display:inline-block;width:3px;height:10px;background:#22c55e;border-radius:2px;margin-right:4px;vertical-align:middle"></span>Champions</span>';
+    html += '<span><span style="display:inline-block;width:3px;height:10px;background:var(--accent);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Europa</span>';
+    html += '<span><span style="display:inline-block;width:3px;height:10px;background:var(--live);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Descenso</span></div>';
     container.innerHTML = html;
+  } catch { container.innerHTML = '<div class="empty">Error al cargar la clasificación.</div>'; }
+}
 
-    container.querySelectorAll('.match-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = card.dataset.id;
-        if (expandedId === id) {
-          expandedId = null;
-          card.classList.remove('expanded');
-        } else {
-          container.querySelectorAll('.match-card').forEach(c => c.classList.remove('expanded'));
-          expandedId = id;
-          card.classList.add('expanded');
-        }
-      });
-    });
-  }
+document.getElementById('standings-select').addEventListener('change', loadStandings);
 
-  buildDateNav();
-  fetchMatches(formatDate(new Date()));
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js');
-    });
+// FAVORITES
+function renderFavorites() {
+  const container = document.getElementById('favorites-container');
+  if (!favorites.length) {
+    container.innerHTML = '<div class="empty">Aún no tienes favoritos.<br><br>Ve a partidos y pulsa ☆ junto a cualquier liga para guardarla aquí.</div>';
+    return;
   }
+  container.innerHTML = favorites.map(l => `
+    <div class="fav-league-card">
+      <span style="font-size:14px">⭐ ${l}</span>
+      <button class="fav-remove-btn" data-league="${l}">×</button>
+    </div>`).join('');
+  container.querySelectorAll('.fav-remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      favorites = favorites.filter(f => f !== btn.dataset.league);
+      localStorage.setItem('fav_leagues', JSON.stringify(favorites));
+      renderFavorites();
+    });
+  });
+}
+
+buildDateNav();
+fetchMatches(formatDate(new Date()));
+loadStandings();
 </script>
+<script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));</script>
 </body>
 </html>
