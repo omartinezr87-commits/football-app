@@ -518,11 +518,10 @@ async function loadStandings() {
   const container = document.getElementById('standings-container');
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando...</div>';
   try {
-    // Las temporadas de fútbol van con año de inicio: 2024 = temporada 2024-25
-    // Probamos 2024 primero, luego 2023 como fallback
-    let data = await apiFetch(`/standings?league=${leagueId}&season=2024`);
+    // Probar 2025 (temporada 2025-26), luego 2024 (2024-25) como fallback
+    let data = await apiFetch(`/standings?league=${leagueId}&season=2025`);
     if (!data.response || !data.response.length) {
-      data = await apiFetch(`/standings?league=${leagueId}&season=2023`);
+      data = await apiFetch(`/standings?league=${leagueId}&season=2024`);
     }
     const standings = data.response?.[0]?.league?.standings?.[0] || [];
     const seasonYear = data.response?.[0]?.league?.season;
