@@ -525,9 +525,11 @@ async function loadStandings() {
       data = await apiFetch(`/standings?league=${leagueId}&season=2023`);
     }
     const standings = data.response?.[0]?.league?.standings?.[0] || [];
+    const seasonYear = data.response?.[0]?.league?.season;
     if (!standings.length) { container.innerHTML = '<div class="empty">No hay datos para esta liga.</div>'; return; }
 
-    let html = '<div class="standings-table"><div class="standings-row header"><span>#</span><span>Equipo</span><span>PJ</span><span>G</span><span>P</span><span>E</span><span>Pts</span></div>';
+    const seasonLabel = seasonYear ? `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Temporada ${seasonYear}-${String(seasonYear+1).slice(2)}</div>` : '';
+    let html = seasonLabel + '<div class="standings-table"><div class="standings-row header"><span>#</span><span>Equipo</span><span>PJ</span><span>G</span><span>P</span><span>E</span><span>Pts</span></div>';
     standings.forEach((t) => {
       const pos = t.rank;
       const total = standings.length;
