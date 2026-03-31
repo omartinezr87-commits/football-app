@@ -368,8 +368,9 @@ function renderMatches() {
 
     events.forEach(e => {
       const { isLive, label: statusLabel, cssClass: statusCss } = getStatusInfo(e.fixture);
-      const hs = e.goals.home !== null ? e.goals.home : '-';
-      const as2 = e.goals.away !== null ? e.goals.away : '-';
+      const notStarted = e.fixture.status.short === 'NS';
+      const hs = (!notStarted && e.goals.home !== null) ? e.goals.home : '-';
+      const as2 = (!notStarted && e.goals.away !== null) ? e.goals.away : '-';
       const time = formatTime(e.fixture.date);
       const stadium = e.fixture.venue.name || '';
       const city = e.fixture.venue.city || '';
@@ -378,8 +379,8 @@ function renderMatches() {
       const homeLogo = e.teams.home.logo ? `<img class="team-logo" src="${e.teams.home.logo}" alt="" onerror="this.style.display='none'">` : '';
       const awayLogo = e.teams.away.logo ? `<img class="team-logo" src="${e.teams.away.logo}" alt="" onerror="this.style.display='none'">` : '';
 
-      const homeWin = e.goals.home !== null && e.goals.away !== null && e.goals.home > e.goals.away;
-      const awayWin = e.goals.home !== null && e.goals.away !== null && e.goals.away > e.goals.home;
+      const homeWin = !notStarted && e.goals.home !== null && e.goals.away !== null && e.goals.home > e.goals.away;
+      const awayWin = !notStarted && e.goals.home !== null && e.goals.away !== null && e.goals.away > e.goals.home;
 
       html += `<div class="match-card ${isLive ? 'live-card' : ''} ${expandedId === String(e.fixture.id) ? 'expanded' : ''}" data-id="${e.fixture.id}">
         <div class="match-row">
@@ -517,11 +518,11 @@ async function loadStandings() {
   const container = document.getElementById('standings-container');
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando...</div>';
   try {
-    const season = new Date().getFullYear();
-    // Intentar temporada actual, si no hay datos probar la anterior
-    let data = await apiFetch(`/standings?league=${leagueId}&season=${season}`);
+    // Las temporadas de fútbol van con año de inicio: 2024 = temporada 2024-25
+    // Probamos 2024 primero, luego 2023 como fallback
+    let data = await apiFetch(`/standings?league=${leagueId}&season=2024`);
     if (!data.response || !data.response.length) {
-      data = await apiFetch(`/standings?league=${leagueId}&season=${season - 1}`);
+      data = await apiFetch(`/standings?league=${leagueId}&season=2023`);
     }
     const standings = data.response?.[0]?.league?.standings?.[0] || [];
     if (!standings.length) { container.innerHTML = '<div class="empty">No hay datos para esta liga.</div>'; return; }
